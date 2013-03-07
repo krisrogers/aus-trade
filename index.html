@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<head>
+<meta charset="utf-8">
+<style>
+
+body {
+  font: 10px sans-serif;
+}
+
+select#countries {
+    display: block;
+}
+
+/* Trade Chart */
+
+svg#trade-chart {
+    padding: 25px 60px;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.x.axis path {
+  display: none;
+}
+
+.balance, .exports, .imports {
+  fill: none;
+  stroke-width: 1.5px;
+}
+
+.balance {
+    stroke: black;
+}
+
+.exports {
+    stroke: green;
+}
+
+.imports {
+    stroke: red;
+}
+
+/* END Trade Chart */
+
+
+
+
+</style>
+<script src="http://d3js.org/d3.v3.js"></script>
+<script src="trade-by-country.json" type="text/javascript"></script>
+<script>
+function drawTradeChart () {
+    
+    var countriesList = document.getElementById("countries");
+    var country = countriesList.options[countriesList.selectedIndex].value;
+    
+    var balanceData = d3.entries(TRADE_BY_COUNTRY[country]['balance']);
+    var exportData = d3.entries(TRADE_BY_COUNTRY[country]['exports']);
+    var importData = d3.entries(TRADE_BY_COUNTRY[country]['imports']);
+
+    var width = 600,
+        height = 300;
+        
+    var svg = d3.select("svg#trade-chart");
+    svg.selectAll('*').remove();
+    svg.attr('width', width).attr('height', height);
+    
+    var x = d3.scale.ordinal().rangePoints([0, width]).domain(YEARS);
+    var y = d3.scale.linear().range([height, 0]);
+    
+    var xAxis = d3.svg.axis().scale(x).orient("bottom");
+    var yAxis = d3.svg.axis().scale(y).orient("left");
+    
+    var line = d3.svg.line()
+        .interpolate("basis")
+        .x(function(d) { return x(d.key); })
+        .y(function(d) { return y(d.value/1000.0); });
+    
+    y.domain([Math.min(0, d3.min(balanceData, function (d) { return d.value/1000.0; })), d3.max(exportData.concat(importData).concat(balanceData), function(d) { return d.value/1000.0; })]);
+    
+    svg.append("path")
+        .datum(balanceData)
+        .attr("class", "balance")
+        .attr("d", line);
+    
+    svg.append("path")
+        .datum(exportData)
+        .attr("class", "exports")
+        .attr("d", line);
+        
+    svg.append("path")
+        .datum(importData)
+        .attr("class", "imports")
+        .attr("d", line);
+    
+    // x axis
+    svg.append("g")
+        .attr("class", "x axis")
+        .attr("transform", "translate(0," + height + ")")
+        .call(xAxis);
+    
+    // y axis
+    svg.append("g")
+        .attr("class", "y axis")
+        .call(yAxis)
+    .append("text")
+        .attr("transform", "rotate(-90)")
+        .attr("y", 6)
+        .attr("dy", ".71em")
+        .style("text-anchor", "end")
+        .text("Millions ($)");
+};
+</script>
+</head>
+<body onload="drawTradeChart();">
+    <b>Country</b>:<select id="countries" onchange="drawTradeChart();"></select>
+    <svg id="trade-chart"></svg>
+    <script>
+    var COUNTRIES = d3.keys(TRADE_BY_COUNTRY).sort();
+    d3.select('select#countries').selectAll('option')
+        .data(COUNTRIES)
+        .enter()
+        .append('option')
+        .attr('value', function (d) { return d; })
+        .html(function (d) { return d;});
+    
+    var YEARS = ['2006', '2007', '2008', '2009', '2010', '2011'];
+    </script>
+</body>
