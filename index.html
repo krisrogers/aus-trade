@@ -17,6 +17,11 @@ svg#trade-chart {
     padding: 25px 60px;
 }
 
+svg#trade-chart text {
+    font-size: 12px;
+    font-weight: bold;
+}
+
 .axis path,
 .axis line {
   fill: none;
@@ -70,7 +75,7 @@ function drawTradeChart () {
     svg.selectAll('*').remove();
     svg.attr('width', width).attr('height', height);
     
-    var x = d3.scale.ordinal().rangePoints([0, width]).domain(YEARS);
+    var x = d3.scale.ordinal().rangePoints([0, width - 100]).domain(YEARS);
     var y = d3.scale.linear().range([height, 0]);
     
     var xAxis = d3.svg.axis().scale(x).orient("bottom");
@@ -97,6 +102,30 @@ function drawTradeChart () {
         .datum(importData)
         .attr("class", "imports")
         .attr("d", line);
+        
+    svg.append("text")
+      .attr("x", width - 50)
+      .attr("y", 15)
+      .text('Exports')
+      .attr('fill', 'green');
+    svg.append("text")
+      .attr("x", width - 50)
+      .attr("y", 35)
+      .text('Imports')
+      .attr('fill', 'red');
+    svg.append("text")
+      .attr("x", width - 50)
+      .attr("y", 55)
+      .text('Balance')
+      .attr('fill', 'black');
+      
+    svg.append("rect")
+    .attr("x", width - 55)
+    .attr("width", 60)
+    .attr("y", 0)
+    .attr("height", 65)
+    .attr('fill', 'none')
+    .attr('stroke', 'black');
     
     // x axis
     svg.append("g")
